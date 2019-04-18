@@ -1,0 +1,3 @@
+# Include other files
+include sylvain_cs5272/frequencies.ini
+include sylvain_cs5272/set_chmod.sh
