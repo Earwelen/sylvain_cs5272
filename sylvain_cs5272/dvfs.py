@@ -5,16 +5,18 @@
 
 # imports
 import configparser
+import os
+
 
 paths_freq = configparser.ConfigParser()
-paths_freq.read("sylvain_cs5272/paths_freq.ini")
+paths_freq.read("/home/odroid/Project/sylvain_cs5272/sylvain_cs5272/paths_freq.ini")
+processors = ("a7", "a15", "gpu")
 
 
-def freq_current(choice, raw=True):
+def freq_current(choice):
     with open(paths_freq[choice]["cur"]) as f:
-        cur_freq = f.read()
-        cur_freq_formatted = f"{int(cur_freq)/1000:.0f}" if cur_freq.isdigit() else cur_freq
-    return cur_freq if raw else cur_freq_formatted
+        cur_freq = f.read().split()[0]
+    return cur_freq
 
 
 def freq_write(choice, value):
@@ -23,7 +25,13 @@ def freq_write(choice, value):
 
 
 def freq_available(choice):
-    print(paths_freq[choice]["available"])
     with open(paths_freq[choice]["available"]) as f:
         return f.read().split()
+
+
+def freq_mhz(choice, value):
+    if choice == "gpu":
+        return int(value)/10**6
+    else:
+        return int(value)/10**3
 
