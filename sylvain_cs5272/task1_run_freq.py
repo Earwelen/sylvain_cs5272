@@ -8,7 +8,7 @@
 import argparse
 from time import sleep as t_sleep
 
-from sylvain_cs5272.dvfs import freq_current, freq_write, freq_available
+from sylvain_cs5272.dvfs import freq_current, freq_write, freq_available, freq_mhz, processors
 
 
 def main(choice, delay):
@@ -17,24 +17,28 @@ def main(choice, delay):
     frequencies = freq_available(choice)
     print(frequencies, flush=True)
     
-    print(f"Current frequency is : {freq_current(choice, raw=False)} Mhz", flush=True)
+    print(f"Current frequency is : {freq_mhz(choice, freq_current(choice))} Mhz", flush=True)
         
     for freq in frequencies:
         freq_write(choice, freq)
         counter = 0
-        while freq_current(choice, raw=True) != freq:
+        while freq_current(choice) != freq:
             t_sleep(0.001)
             counter += 1
             if counter > 1000:
-                print(f"Frequency doesn't want to change, still at {freq_current(choice, raw=False)} Mhz, giving up",
-                      flush=True)
+                print(f"Frequency doesn't want to change, still at {freq_mhz(choice, freq_current(choice))} Mhz, "
+                      f"giving up", flush=True)
                 break
         
-        print(f"Frequency has been set to {freq_current(choice, raw=False)} Mhz (waited {counter}ms). "
+        print(f"Current frequency is {freq_mhz(choice, freq_current(choice))} Mhz (waited {counter}ms). "
               f"Waiting {delay} sec to check the power consumption.", flush=True)
         t_sleep(delay)
-        
-    return
+
+    t_sleep(delay*3)
+    print("Tests are done, putting back to low power")
+    freq_write(choice, frequencies[0])
+    print(f"Current frequency is {freq_mhz(choice, freq_current(choice))} Mhz (waited {counter}ms). "
+          f"Waiting {delay} sec to check the power consumption.", flush=True)
 
 
 if __name__ == '__main__':
@@ -43,12 +47,12 @@ if __name__ == '__main__':
     cmd.add_argument("choice", help="Choose between a7, a15 or gpu", type=str,
                      default="A7", choices=("a7", "a15", "gpu", "all"))
     cmd.add_argument("-d", "--delay", help="time for each frequency setup", 
-                     type=int, default="10")
+                     type=int, default="5")
     args = cmd.parse_args()
     
     print("Launching task 1", flush=True)
     if args.choice == "all":
-        for processor in ("a7", "a15", "gpu"):
+        for processor in processors:
             main(processor, args.delay)
     else:
         main(args.choice, args.delay)
